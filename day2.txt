@@ -1,0 +1,297 @@
+Mongodb:
+
+Replication
+Same data stored in different physical server
+Redundancy
+a. Maintain Consistency
+b. updation, deletion, Read
+c. Memory 
+
+Availability
+
+CAP - AP; eventual consistency
+
+Replica set -- Collection of mongod servers
+Maximum 50 members in the replica set; Maximum there is 7 voting members
+Each member in a replica set:
+Property:
+a. Priority : int number >=0
+b. Votes: 0 or 1
+0 - Cannot take part in the election
+1 - Can take part in the election
+
+Primary -- member who has a priority >0; votes : 0 or 1
+All the reads and writes handled by primary
+Can have only one primary member in a replica set
+
+Secondary - member with priority >=0; votes - 0 or 1
+Sync with the primary asynchronously
+Can configure the secondary so that can handle the reads
+
+1. Heartbeat
+Each member will exchange heartbeat every 2 seconds
+
+secondary member goes down : will not affect the reads/writes
+
+primary goes down : reads will still work, writes will fail
+Automatic failover : 
+election process is initiated -- elect a new primary
+
+Modi
+Amit Shah
+Ex prime minister
+Up cm, Gadkari,Rajnath
+BJP MP's vote -- majority
+Common people can't vote
+
+Election process in mongodb
+Eligible Secondary: Stand in the election process: Priority: >0 and it should have synced completely with the primary
+
+1. Member with the highest priority
+2. many members who have the same highest priority
+	-- who has been the primary earlier
+3. Voting members(only 7) will vote for the candidates from level2
+majority -- member will become primary
+4. If there is a tie, round robin process(no arbiter)
+If the arbiter is present, break the tie
+
+Odd number of Members in the replica set
+
+Time to find the primary is down : 10 sec;
+election time : 12 sec:
+
+write fail : max for 22 sec;
+mongodb driver -- 1 retry
+
+Arbiter : Special secondary member; priority : 0; votes :1
+Non data bearing member; Not going to hold any data;
+Breaking the tie. Hardware configuration: minimal
+
+read --> mongodb driver -- route it to the primary/ secondaries(configured)
+
+write --> mongodb driver -- route it to the primary -- perform the operation --> acknowledgement to the client; make an entry of write in oplog collection --> secondaries asynchronoulsy copy the oplog entries from the primary and apply the operation on the data which it holds -- > consistent with the primary
+
+Oplog collection: Each member will have its own oplog
+Capped collection: 
+
+Collection: any number of docs ; any amount of space;
+
+Capped collection : collection ; a fixed number of docs or can take only a configured amount of memory
+
+Emp -- capped collection : 20 gb of memory
+Current capacity: 18gb
+Insertion : Multiple Docs - 4gb size
+First(order of insertion) 2gb of data will be removed
+
+Oplog collection -- capped collection
+Write -- primary -- add it to oplog collection(write op, db,collection,timestamp) -- secondaries have to sync
+3 member (n1(primary),n2,n3)
+
+write --> n1 --> n1 perform the op --> n1 will write it to its oplog--> n2,n3 copy the oplog entries(acc to the timestamp); perform the op on its data
+
+
+Inconsistency:
+
+write concern:
+
+write operation -- has to be performed -- primary will always perform it first
+
+give a write query, also mention write concern:
+write concern : 1,2,3.. n, "majority"
+
+update emp set salary =1000 where empId > 101
+// can affect many rows
+
+Replica set : 5 members(PSSSS)
+Scenario 1 : write concern :1
+ write -- primary -- complete the op--> send the ack to the client; Secondaries will sync with the primary
+
+Scenario 2: write concern :2
+minimum 2 members have to complete the write op to give the ack
+write --> primary --> complete the op --> once one of the sec has completed the write op on its data --> ack will be sent to the client
+
+Scenario 3: write concern : 4
+write --> primary --> complete the op --> 3 secondaries have to complete the op --> ack will be sent to the client
+
+Scenario 4: write concern : majority 
+majority -- 3 is majority among the 5 members
+
+Inconsistency
+
+write concern :1; reads configured: can go to secondary
+Before updation salary of 101 is 9000
+update emp set salary =1000 where empId = 101
+select * from emp where empId =101
+
+2 queries are coming at the same time
+write -- primary -- complete the op -- give the ack
+read -- sec (n2); n2 has not synced with the primary yet; return the salary -- 9000 
+
+Returning inconsistent data
+
+eventual consistency
+Best practice : write concern : majority
+1. Majority of nodes will have updated data
+2. Primary goes down; there are other members who have performed the write op; write op will not disappear
+
+n members in the replica set
+Full consistency : write concern : n; Disadv : time for executing the query -- more; even if a secondary is down -- writes will fail if its beyond the time 
+
+Write concern Default value: majority
+
+Write concern : 
+a. Connection level
+b. Replica set level
+c. query level
+
+n members in the replica set:
+write concern : n
+a secondary is down:
+write query -- ack -- failed to the client;
+primary has finished the write op; some of the secondaries has finished syncing; rollback in the primary ; secondaries sync it;
+
+primary -- 3 works
+1. update the db
+2. add an entry to oplog
+3. add as a journal entry
+
+
+Scenario
+write concern :1
+client --> primary --> updated the data --> written in the oplog --> send the ack --> but before any of the sec can sync-- primary goes down; 
+
+election process -- eligible sec -- becomes the primary -- read for the updated data --> Stale data
+
+Journal -- add all the writes into the journal; every 60  seconds will flushed into memory
+
+losing the data - 1 sec
+primary goes down -- write op -- journal entry
+primary come up as a secondary -- journal entries will be replayed
+
+Oplog collection -- one per member 
+3 member replica set (PSS)
+n1 -- primary 
+n2,n3 will sync their respy oplog's with n1's oplog
+
+n1 -- goes down and n2  becomes the primary 
+n3 -- syc with n2's oplog
+
+
+
+
+ObjectId : Bson data type : 12 byte hexadecimal number
+timestamp,machine id, process id , counter
+
+Name; emailid; username
+
+insertOne({})
+insertMany([])
+insert() -- deprecated
+
+db.emp.insertMany([{empId:106,empName:"sasha",salary:567},
+{empId:107,empName:"piyush",salary:1567.78},
+{empId:108,empName:"jack",salary:5670.77}])
+
+
+Find queries:
+db.emp.find(filter condition, project)
+On basis of equality
+db.emp.find({empId:101})
+
+Relational operators:
+$gt, $lt, $gte; $lte; $eq; $ne
+db.emp.find({salary:{$gt:5000}})
+
+Logical operators:
+and, or, not
+$and, $or, $not
+
+db.emp.find({
+$and:[{salary:{$lt:5000}},{empId:{$gt:105}}]
+})
+
+
+db.emp.find({
+$or:[{salary:{$lt:5000}},{empId:{$gt:105}}]
+})
+
+Like : 
+Javascript
+Pattern:/^s/i -- get all the values which start with s or S
+
+/ra$/i -- ends with ra and ignore the case
+
+/[a-z,A-Z]/
+
+/[0-9]{10}/
+
+wild card matching:
+
+n? -- n can occur 0 or 1 time 
+n+ -- n can occur 1 or more time 
+n* -- n can occor 0 or more times
+
+/go?d/
+Words -- gd; god
+
+/go*d/
+words -- gd;god; good; goooood
+
+/go+d/ 
+words -- god; good; goooood
+
+db.emp.find({
+$or:[{salary:{$lt:5000}},{empId:{$gt:105}},{empName:/^s/i}]
+})
+
+Example 1:
+db.emp.find({
+$and:[{salary:{$lt:5000}},{empId:{$gt:105}}]
+})
+
+Example 2: Another way of writing $and:
+db.emp.find({
+	salary:{$lt:5000},
+	empId:{$gt:105}
+})
+
+Example : It will not work $and: 2 conditions are based on the same field
+db.emp.find({
+	salary:{$lt:5000},
+	salary:{$gt:10000}
+}); // should not return any doc; but will return the docs which have salary > 10000
+
+Why is it working:
+a. Both the conditions are on the same field
+b. Last condition will only hold good
+
+java:
+int i=10;
+i=20;
+sysout(i);//20
+
+javascript:
+var emp1={empId:101,empName:"sraa",salary:1000};
+console.log(emp1);//{empId:101,empName:"sraa",salary:1000};
+var emp2={empId:101,empName:"sraa",salary:1000,empId:999};
+console.log(emp2);//{empId:999,empName:"sraa",salary:1000};
+
+
+
+Between operator:
+db.emp.find({salary:{$gt:5000,$lt:10000}})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Sharding

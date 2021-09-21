@@ -1,0 +1,95 @@
+Why Nosql?
+Better scalability
+Horizontal scaling
+Availability
+Unstructured data(logs,videos,images), semi structured data,structured data -- BLOBs, CLOB; performance 
+
+Big data; 
+No schema;
+Flatten the structure -- No joins(performance intensive); easier to map with application data
+ 
+Mongodb :Json -- in front end; server; db side
+
+Indexes: 
+Variety of indexes: Index on an array field, geospatial data, compound indexes, text indexes
+
+Sharding: Clustering; Improve the performance of the query
+c: office 
+d: personal 
+d:/photos; d:/travelPlans
+
+break up the data and store it in multiple physical servers:
+
+Table - 10 lakh records
+Scenario 1: Find a particular photo
+D:/photos -- searched 
+No sharding : Table scan 10 lakh records
+Sharding: 1 lakh photos 
+
+Scenario 2: Find a photo and a particular travel expense
+d:/photo; c:/travelExp - 2 lakh docs
+
+Scenario 3: Find all the records which is stored on 10-10-2021;
+No? Table scan; Not based on shard key
+
+Vertical scaling -- increase the CPU, RAM of the single server
+
+Horizontal scaling -- increase the number of servers
+ Normal day - 3 servers
+ Prime day -- 10 servers (simple configuration)
+ Normal day -- 3 servers
+Adv: Cost - lesser; data availabilty;easy to scale up and scale down
+Disadv:Redundancy of data;
+
+Vertical scaling:
+Adv: Single server -- management is easier,No redundancy of data
+Disadv: Costly; Single server is down -- data is not available
+AGL -- Configuartion; manual switching; data server - on;y one
+
+Geo spatial data: 
+pick up point : coordinates :(lat,long)
+cabs -- 2 km radius of the pick up coord
+
+
+Create the database:
+
+use dellDbBatch3
+
+Mongodb Features:
+1. No schema; dynamic schema
+create table emp(
+empId int primary key,
+empName varchar2(25) not null,
+salary int)
+
+Schema of the table
+Records should adhere to these constraints
+
+Mongodb -- RDBMs
+Collection -- table
+Document -- record
+Db- Db
+no-Foreign key
+
+2. BSON 
+JSON - Javascript object notation
+BSON - Binary JSON = serialisation encoding format for json
+
+JSON - number(14, 14.56)
+BSON -- additional data types(int64,decimal,ObjectId,null) ;
+     -- traverse ; consume less space; faster encoding,decoding
+
+3. Aggregation pipeline:
+ls | wc
+
+Consists of multiple stages
+At each stage performing the operation
+Output of first stage becomes the input of second stage
+
+4. Secondary Indexes:
+Index on array, geo spatial data, object, embedded object field,text index, index on all string fields, hashed index, partial field, TTL index
+
+5. Replication
+6. Sharding
+
+
