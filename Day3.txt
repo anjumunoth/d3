@@ -1,0 +1,131 @@
+$in , $nin 
+{state :{$in:["MA","RI","NH"]}}
+
+$type:
+db.emp.find({salary:{$type:10}})
+db.emp.find({_id:{$type:7}})
+
+Docs which do not have salary field
+$exists
+db.emp.find({salary:{$exists: false}})
+
+Works with arrays:
+1. Exact match of an match
+{"loc": [-72.622739, 42.070206]}
+
+2. Match on basis of equality - Any one of the elements can match the condition
+{"loc":{$gt:41}}
+
+3. Element at 1st position should match the condition:
+{"loc.1":{$gt:41}}
+
+
+loc:[100,[20,30],45,[22,32]]
+"loc.1.0"
+
+
+db.student.insertMany([
+{studId:101,studName:"asha",marks:[10,20,30]},
+{studId:102,studName:"sasha",marks:[20,30,10]},
+{studId:103,studName:"gita",marks:[10,70,80]},
+{studId:104,studName:"sita",marks:[10,55,90]},
+{studId:105,studName:"priya",marks:[80,90,90]},
+{studId:106,studName:"piyush",marks:[30,20,10]}
+])
+
+1. All the students who have the marks 10,20,30
+{marks:[10,20,30]};//101
+
+//101,102,106
+{marks:{$all:[10,20,30]}}
+
+2.  All the students who have the marks 10,80
+{marks:{$all:[10,80]}}
+
+3. All the students who have got a mark 20 in the second position
+//101,106
+{"marks.1":20}
+
+4. All the students who have got a mark in the range 35 to 60
+// 104,103
+{marks:{$gt:35,$lt:60}}
+
+// 104
+{marks:{$elemMatch:{$gt:35,$lt:60}}}
+
+{marks:{$size:2}}
+
+All the restaurants which have the longitude value in the range 40 to 41
+
+3733 docs
+
+All the restaurants which have a score in the range 10 to 20
+
+a.
+Object match
+{grades:{score:{$gt:10,$lt:20}}}
+
+b.3430
+{"grades.score":{$gt:10,$lt:20}}
+
+c. 
+{grades:{$elemMatch:{score:{$gt:10,$lt:20}}}}
+
+
+All the restaurants which have a score in the range 10 to 20
+or grade="A"
+
+{
+$or:[
+{grades:{$elemMatch:{score:{$gt:10,$lt:20}}}},
+{"grades.grade":"A"}]
+}
+
+{
+$or:[
+{grades:{$elemMatch:{score:{$gt:10,$lt:20}}}},
+{"grades":{$elemMatch:{grade:"A"}}}]
+}
+
+
+All the restaurants which have a single element for which the score is in the range 10 to 20 and grade is "A"
+
+{
+grades:{$elemMatch:{score:{$gt:10,$lt:20},"grade":"A"}}
+}
+
+
+{
+$and:[
+{grades:{$elemMatch:{score:{$gt:10,$lt:20}}}},
+{"grades":{$elemMatch:{grade:"A"}}}]
+}
+
+
+Limit
+Skip
+
+db.emp.find({empId:{$gt:105}}).limit(5)
+emp - 14 docs(101 -114)
+db.emp.find().limit(10).skip(3); //7 docs 104 to 110; 10 docs 104 t0 113
+db.emp.find().skip(3).limit(10); //10 docs
+db.emp.find().skip(3).limit(3); //3 docs
+db.emp.find().limit(3).skip(3); //0 docs; 3 docs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
