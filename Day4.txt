@@ -1,0 +1,123 @@
+collation: {
+  locale: <string>,
+  caseLevel: <bool>,
+  caseFirst: <string>,
+  strength: <int>,
+  numericOrdering: <bool>,
+  alternate: <string>,
+  maxVariable: <string>,
+  backwards: <bool>
+}
+
+locale: language to be used
+strength : 1,2,3,4,5
+strength:1 Primary comparison -- base characters
+strength:2 Secondary comparison -- base characters,daicritics
+strength:3 tertiary comparison -- base characters,diacritics,case
+strength:4 Quaternary comparison -- 1-3, punctuation marks
+
+caseLevel: true ; case sensitive matching/sorting
+
+caseFirst: lower: lowercase sorts before the uppercase
+caseFirst: upper:uppercase sorts before the lowercase
+
+numericOrdering: true
+EmpId -- string consisting of numbers
+sort the strings as if they are numbers
+numericOrdering : false
+
+24 < 100
+"24" > "100"
+
+
+Docs where the first mark is greater than 20
+
+
+Update:
+update -- deprecated
+updateOne
+updateMany
+
+db.emp.updateOne(filter,how to update)
+db.emp.updateOne({empId:101},{$set:{salary:1000}})
+db.emp.updateOne({empId:{$gt:101}},{$set:{salary:1000}})
+
+db.emp.updateOne({empId:103},{$set:{salary:1000,empName:"jeena",location:"BLR"}})
+
+$unset:
+db.emp.updateOne({empId:103},{$unset:{empName:1}})
+
+$inc, $mul
+db.emp.updateOne({empId:104},{$inc:{salary:1000}})
+db.emp.updateOne({empId:104},{$set:{hob:"singing"}})
+
+Array updations:
+
+$push:
+db.emp.updateOne({empId:104},{$push:{hobbies:"singing"}})
+
+$push with $each
+db.emp.updateOne({empId:104},{$push:{hobbies:{$each:["cooking","dancing"]}}})
+
+Insert the element at a particular position
+$position should be used along with $each
+db.emp.updateOne({empId:104},{$push:{hobbies:{$each:["sleeping","surfing"],$position:2}}})
+
+
+$slice: 
+$slice should be used along with $each
+db.emp.updateOne({empId:104},{$push:{hobbies:{$each:["h2","h1"],$slice:6}}})
+
+$sort:
+$sort should be used along with $each,$sort only works on array of objects
+
+db.emp.updateOne({empId:104},{$push:{hobbies:{$each:["h2","h1"],$sort:{hobbies:1}}}})
+
+
+db.emp.updateOne({empId:104},{$push:{hobbies:{$each:["h9","h8"],$sort:{hobbies:1}}}})
+
+$sort should be used along with $each,$sort:1
+
+$pop:
+
+updateOne
+updateMany
+
+Update Operators
+$set, $unset, $push, $pull, $pop,$rename,$inc,$mul
+$each, $sort, $position, $slice
+$ - positional operator
+
+$elemMatch
+
+Marks: 
+Update all those marks which is greater than 30
+
+1. Add 40 to the 2 students 101,102
+db.student.updateMany({empId:{$in:[101,102]}},{$push:{marks:40}})
+
+2. Modify the marks to 70 where marks > 20
+db.student.updateMany({marks:{$gt:20}},{$set:{"marks.$":70}})
+
+
+db.student.updateMany(
+{marks:-5},
+{$set:{"marks.$[element]":200}},
+{arrayFilters:[{element:{$gt:20}}]})
+
+Array of objects:
+
+db.emp.updateMany(
+{empId:105,"dept.deptId":{$in:["d4","d5"]}},
+{$set:{"dept.$[element].deptId":"dd1"}},
+{arrayFilters:[{"element.deptName":/^d/i}]})
+
+
+{"studId":107,"studName":"asha","dept":[{"deptId":"dd1","deptName":"Database Admin"},{"deptId":"d5","deptName":"Coding"},{"deptId":"d6","deptName":"Administration"},{"deptId":"d2","deptName":"Admin"},{"deptId":"d1","deptName":"HR","location":"BLR"},{"deptId":"d3","deptName":"Payroll"},{"deptId":"dd1","deptName":"Dba"}]}
+
+
+
+
+
+
+

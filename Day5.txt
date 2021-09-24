@@ -1,0 +1,289 @@
+{"studId":107,"studName":"asha","dept":[{"deptId":"dd1","deptName":"Database Admin"},{"deptId":"d5","deptName":"Coding"},{"deptId":"d6","deptName":"Administration"},{"deptId":"d2","deptName":"Admin"},{"deptId":"d1","deptName":"HR","location":"BLR"},{"deptId":"d3","deptName":"Payroll"},{"deptId":"dd1","deptName":"Dba"}]}
+
+
+db.emp.updateMany(
+... {empId:105,"dept.deptId":{$in:["d4","d5"]}},
+... {$set:{"dept.$[element].deptId":"dd1"}},
+... {arrayFilters:[{"element.deptName":/^d/i}]})
+
+
+
+db.student.updateMany(
+{studId:107},
+{$set:{"dept.$[element].deptName":"Admin"}},
+{arrayFilters:[
+{$and:[{"element.deptId":"dd1"},{"element.location":"BLR"}]}]})
+
+db.student.updateMany(
+{marks:-5},
+{$set:{"marks.$[element]":200}},
+{arrayFilters:[{element:{$gt:20}}]})
+
+Array of objects:
+
+db.emp.updateMany(
+{empId:105,"dept.deptId":{$in:["d4","d5"]}},
+{$set:{"dept.$[element].deptId":"dd1"}},
+{arrayFilters:[{"element.deptName":/^d/i}]})
+
+
+db.student.insertMany([
+{studId:101,studName:"asha",marks:[10,20,30]},
+{studId:102,studName:"sasha",marks:[20,30,10]},
+{studId:103,studName:"gita",marks:[10,70,80]},
+{studId:104,studName:"sita",marks:[10,55,90]},
+{studId:105,studName:"priya",marks:[80,90,90]},
+{studId:106,studName:"piyush",marks:[30,20,10]}
+])
+
+db.student.insert({"studId":107,"studName":"asha","dept":[{"deptId":"dd1","deptName":"Database Admin"},{"deptId":"d5","deptName":"Coding"},{"deptId":"d6","deptName":"Administration"},{"deptId":"d2","deptName":"Admin"},{"deptId":"d1","deptName":"HR","location":"BLR"},{"deptId":"d3","deptName":"Payroll"},{"deptId":"dd1","deptName":"Dba"}]})
+
+db.student.updateMany({studId:{$in:[103,105]}},{$push: {marks: 45}})
+
+db.student.updateMany({studId: {$in: [103,105]}},{$push: {marks: 45}})
+
+//Prashant
+db.student.updateMany({studId:{$in:[103,105]}},{$push:{marks:{$each:[45]}}})
+//Sawmya
+db.student.updateMany({studId:{$in:[102,104]}},{$push:{marks:{$each:[45],$position:0}}})
+//Prashant
+db.student.updateMany({studId:{$in:[102,104]}},{$push:{marks:{$each:[70],$position:0}}})
+
+Update the docs so that the marks are sorted in the descending order:
+//Somya
+db.student.updateMany({},{$push:{marks:{$each:[],$sort:-1}}})
+//prashant
+db.student.updateMany({},{$push:{marks:{$each:[],$sort:-1}}})
+
+Update all the students marks(only one mark) to 85 if they have a mark which is 10
+
+//Pratyush
+db.Student.updateMany(
+{marks:10},
+{$set:{"marks.$":85}})
+//Prashant
+db.student.updateMany({marks:10},{$set:{"marks.$":85}})
+
+//Syed
+db.student.updateMany({marks: 10}, {$set: {"marks.$" :85}})
+
+//Sawmya
+db.student.updateMany({marks:10},{$set:{"marks.$":85}})
+//chetanti
+db.student.updateMany({marks:10},{$set:{"marks.$":85}})
+//sujeet
+db.student.updateMany({marks:10},{$set:{"marks.$":85}})
+
+Update all the docs which have a mark > 80 to 65(all the elements in the array which have a mark >80)
+//Syed
+db.student.updateMany(
+{marks: {$gt : 80}},
+{$set:{"marks.$[el]":65}},
+{arrayFilters:[{el:{$gt:80}}]})
+
+
+//Sawmya
+
+db.student.updateMany(
+{marks:{$gt:80}},
+{$set:{"marks.$[element]":65}},
+{arrayFilters:[{element:{$gt:80}}]})
+
+//Pratyush
+db.student.updateMany(
+{},
+{$set:{"marks.$[element]":65}},
+{arrayFilters:[{element:{$gt:80}}]})
+
+//Anju
+db.student.updateMany(
+{},
+{$set:{"marks.$[element]":56}},
+{arrayFilters:[{element:{$gt:50}}]})
+
+Data before updation:
+{ "studId" : 101, "studName" : "asha", "marks" : [ 30, 20, 109 ] }
+{ "studId" : 102, "studName" : "asha", "marks" : [ 45,45,30,20,109 ] }
+Query:
+db.student.updateMany(
+{studId:102,marks:{$gt:30}},
+{$set:{"marks.$[]":56}})
+
+Data after updation
+{ "studId" : 102, "studName" : "asha", "marks" : [ 56,56,56,56,56] }
+
+db.student.insert({"studId":107,"studName":"asha","dept":
+[{"deptId":"dd1","deptName":"Database Admin"},{"deptId":"d5","deptName":"Coding"},
+{"deptId":"d6","deptName":"Administration"},{"deptId":"d2","deptName":"Admin"},
+{"deptId":"d1","deptName":"HR","location":"BLR"},
+{"deptId":"d3","deptName":"Payroll"},{"deptId":"dd1","deptName":"Dba"}]})
+
+Change all the deptNames to HR wherever the deptId : "dd1" in studId:107
+
+//Sawmya
+
+db.student.updateMany(
+{studId:107},
+{$set:{"dept.$[element].deptName":"HR"}},
+{arrayFilters:[{"element.deptId":"dd1"}]})
+
+//Pratyush
+db.Student.updateMany(
+{studId:107},
+{$set:{"dept.$[element].deptName":"HR"}},
+{arrayFilters:[{"element.deptId":"dd1"}]})
+
+//Syed
+db.emp.updateMany( {studId:107}, {$set: {"dept.$[element].deptName": "HR"}}, {arrayFilters: [{"element.deptId": "dd1"}]})
+
+//Prashant
+db.emp.updateMany(
+{studId:107},
+{$set:{"dept.$[elem].deptName":"HR}},
+{arrayFilters:[{"elem.deptId":"dd1"}}]}
+)
+
+Change the deptName to Admin where deptId =d1 and location to BLR
+db.student.updateMany(
+{studId:107},
+{$set:{"dept.$[element].deptName":"Admin"}},
+{arrayFilters:[
+{$and:[{"element.deptId":"dd1"},{"element.location":"BLR"}]}]})
+
+We will back by 11:33
+
+select sum(salary) from emp 
+
+Aggregation pipeline:
+Most important feature 
+
+ls | wc
+
+Multiple stages in pipeline
+Output of first stage will become the input for the second stage
+
+Stage:
+a. Input 
+b. Operation 
+c. Output
+
+db.emp.aggregate([{},{}])
+1. $group
+
+select sum(pop) as "SumOfPopulation" from zipcode group by state
+a. from zipcode
+b. group by state
+c. for each group, sum of pop 
+
+select count(*) from zipcode group by state
+
+db.zipcode.aggregate([
+{
+	$group:
+  {
+  	_id:"$state",
+    "SumOfPopulation":{$sum:"$pop"},
+    "AveragePoplulation":{$avg:"$pop"},
+    "maxpop": { $max: "$pop" },
+    "minpop": { $min: "$pop" },
+    "countpop":{$sum:1}
+  }
+}
+])
+
+i++;
+
+//chetanti
+db.zipcode.aggregate([
+{
+	$group:
+  {
+  	_id:"$state",
+    "SumOfPopulation":{$sum:"$pop"},
+    "AveragePoplulation":{$avg:"$pop"},
+    "maxpop": { $max: "$pop" },
+    "minpop": { $min: "$pop" },
+    "countpop":{$count:"$pop"}
+  }
+}
+])
+
+i=i+2;
+db.zipcode.aggregate([
+{$match:{state:"MA"}},
+{
+	$group:
+  {
+  	_id:"$state",
+    "SumOfPopulation":{$sum:"$pop"},
+    "AveragePoplulation":{$avg:"$pop"},
+    "maxpop": { $max: "$pop" },
+    "minpop": { $min: "$pop" },
+    "countpop":{$sum:2}
+  }
+}
+])
+
+2. $project:
+db.zipcode.aggregate([
+{$match:{state:"MA"}},
+{
+	$group:
+  {
+  	_id:"$state",
+    "SumOfPopulation":{$sum:"$pop"},
+    "AveragePoplulation":{$avg:"$pop"},
+    "maxpop": { $max: "$pop" },
+    "minpop": { $min: "$pop" },
+    "countpop":{$sum:2}
+  }
+},
+{
+$project:
+{
+"SumOfPopulation":1,
+"AveragePoplulation":1,
+"countpop":1,
+"maxpop":1,
+"minpop":1,
+"_id":0,
+"State":"$_id"
+}
+}
+
+])
+
+Group according to multiple field
+select sum(pop) from zipcode group by state,city
+a. group by state
+b. for same state, group by city
+c. sum of pop
+
+
+db.zipcode.aggregate([
+{
+$group:
+	{
+  	_id:{f1:"$state",f2:"$city"},
+    "SumOfPop":{$sum:"$pop"}
+  }
+},
+{
+$project:
+{
+"SumOfPop":1,
+_id:0,
+"state":"$_id.f1",
+"city":"$_id.f2"
+}
+}
+])
+
+
+
+
+
+
+
+
+
