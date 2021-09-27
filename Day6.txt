@@ -1,0 +1,353 @@
+db.zipcode.aggregate([{$group: {
+  _id: {f1:"$state",f2:"$city"},
+  "SumOfPopulation":
+  {
+    $sum: "$pop"
+
+      }
+
+  }}, {$project: {
+  "State":"$_id.f1",
+  "City":"$_id.f2",
+  "SumOfPopulation":1,
+  "_id":0,
+  "FullName":{$concat:["$_id.f1","_","$_id.f2"]},
+  "StateInLower":{$toLower:"$_id.f1"},
+  "Report Date":{$toDate:"27-09-2021"}
+
+  }}])
+
+select sum(pop) as "SumOfPopulation" from zipcode group by state,city
+
+select tolower(state) as StateInLower from zipcode
+
+select sum(pop) as "SumOfPop" from zipode group by state having sum(pop) >50000
+
+1. group by -- $group
+2. In each group, check if sum(pop) > 50000 -- $match
+3. Project sum(pop) -- $project
+
+ 
+select sum(pop) as "SumOfPop" from zipode where pop>1000 group by state
+1. where pop >1000 -- $match
+2. group by state -- $group
+3. sum(pop) -- $project
+
+select sum(pop) as "SumOfPop" from zipode where pop>1000 group by state having sum(pop) >50000
+1. $match pop>1000
+2. group by state -- $group stage
+3. $match sum(pop) >50000
+4. $project
+
+db.zipcode.aggregate([{$group: {
+  _id: {f1:"$state",f2:"$city"},
+  "SumOfPopulation":
+  {
+    $sum: "$pop"
+
+      }
+
+  }}, {$project: {
+  "State":"$_id.f1",
+  "City":"$_id.f2",
+  "SumOfPopulation":1,
+  "_id":0,
+  "FullName":{$concat:["$_id.f1","_","$_id.f2"]},
+  "StateInLower":{$toLower:"$_id.f1"},
+  "Report Date":{$toDate:"27-09-2021"}
+
+  }}])
+  
+  
+  Arrays.asList(new Document("$group", 
+    new Document("_id", 
+    new Document("f1", "$state")
+                .append("f2", "$city"))
+            .append("SumOfPopulation", 
+    new Document("$sum", "$pop"))), 
+    new Document("$project", 
+    new Document("State", "$_id.f1")
+            .append("City", "$_id.f2")
+            .append("SumOfPopulation", 1L)
+            .append("_id", 0L)
+            .append("FullName", 
+    new Document("$concat", Arrays.asList("$_id.f1", "_", "$_id.f2")))
+            .append("StateInLower", 
+    new Document("$toLower", "$_id.f1"))
+            .append("Report Date", 
+    new Document("$toDate", "27-09-2021"))))
+    
+--------
+[{$match: {
+  pop: { $gt: 1000}
+}}, {$group: {
+  _id: "$state",
+  "pop": { "$sum": "$pop"}
+}}, {$match: {
+  pop:  {$gt: 50000 }
+
+  }}, {$project: {
+  pop: 0
+}}]
+
+--------
+//Somya
+[{$match: {
+        "pop": { $gt: 1000}
+    }
+}, {$group: {
+        _id: "$state",
+        SumOfPop: { $sum: "$pop" }
+    }
+}, { $match: {
+			"SumOfPop": {$gt: 50000}
+    }
+}, { $project: {_id: 0 }
+}]
+
+
+
+//Syed
+//1.
+db.zipcode.aggregate(
+[{
+    $group: {
+        _id: "$state",
+        "SumOfPop": {
+            $sum: "$pop"
+        }
+    }
+}, {
+    $match: {
+        "SumOfPop": {
+            $gt: 50000
+        }
+    }
+
+}, {
+    $project: {
+        "SumOfPop": 1
+    }
+}])
+
+//2.
+db.zipcode.aggregate(
+[{$match: { "pop": {$gt : 1000} }}, 
+{$group: {
+  	_id: "$state",
+  	"SumOfPop":{$sum:"$pop"}
+}}, 
+{$project: {
+"SumOfPop":1
+}}])
+
+
+
+//Prashant
+[{$match: {
+  "pop":{$gt:1000}
+}}, {$group: {
+  _id: "$state",
+  "SumOfPop": {
+    $sum:"$pop"
+  }
+}}, {$match: {
+  "SumOfPop":{$gt:5000}
+}}, {$project: {
+  "State":"$_id",
+  "SumOfPop":1
+}}]
+
+
+Display the number of restaurants serving "bakery" in zipcode "10462"
+//Somya
+[{
+    $match: {
+        "address.zipcode": "10462",
+        cuisine: "Bakery"
+    }
+}, {
+    $group: {
+        _id: {
+            f1: "$address.zipcode",
+            f2: "$cuisine"
+        },
+        "NoOfDocuments": {
+            $sum: 1
+        }
+    }
+}, {
+    $project: {
+        Zipcode: "_id.f1",
+        Cuisine: "_id.f2",
+        NoOfDocuments: 1,
+        _id: 0
+    }
+}]
+
+[{$match: 
+  {cuisine:"Bakery","address.zipcode":"10462"}
+}, {$group: {
+  _id: null,
+  "Number of restaurants": {
+    $sum: 1
+  }
+}}, {$project: {
+  "Number of restaurants":1,
+  _id:0,
+  "cuisine":"Bakery",
+  "zipcode":"10462"
+
+  }}]
+
+Display the various cuisines served in zipcode "10462"
+
+//SYed
+[{$match: {"address.zipcode": "10462"}
+}, {$project: 
+{
+  _id:0,
+  cuisine:1
+}}]
+
+//Prashant
+[{$match: {
+  "address.zipcode":"10462"
+}}, {$group: {
+  _id: "$cuisine"
+}}, {$project: {
+  "DistinctCuisine":"$_id",
+  "_id":0
+}}]
+
+//Anju
+[{$match: {
+  "address.zipcode":"10462"
+}}, {$group: {
+  _id: "$cuisine"
+
+ }}, {$project: {
+  "Cuisine":"$_id",
+  _id:0
+}}]
+
+// Store the various cuisines as an array:
+[{$match: {
+  "address.zipcode":"10462"
+}}, {$group: {
+  _id: "$cuisine"
+
+ }}, {$project: {
+  "Cuisine":"$_id",
+  _id:0
+}}, {$bucketAuto: {
+  groupBy: "$Cuisine",
+  buckets: 1,
+  output:{
+    "CuisineArr":{$push:"$Cuisine"}
+  }
+
+  }}, {$project: {
+  _id:0
+}}]
+
+
+Display the various cuisines served in borough "Bronx" and have a score greater than 10
+
+//Syed
+[{$match: {
+ borough: "Bronx",
+"grades.score":{$gt:10}
+}
+}, {$group: {
+  _id: "$cuisine"
+}}, {$project: {
+  "Cuisine":"$_id",
+  _id:0
+}}]
+
+//Pratyush
+[{$match: {
+  "grades.score":{$gt:10},
+	borough:"Bronx"
+}}, {$group: {
+   _id: "$cuisine"
+}}, {$project: {
+   "Cuisine":"$_id",
+  _id:0
+}}]
+
+Display the sum of population of all the records in the zipcode collection
+
+//Syed
+[{$group: {
+  _id: null,
+  "SumOfPop":{$sum:"$pop"}
+}}, {$project: {
+  _id: 0,
+  SumOfPop: 1
+}}]
+
+//Somya
+[{$group: {
+        _id: null,
+        SumOfPop: { $sum: "$pop"}
+    }
+}, {$project: { _id: 0}
+}]
+
+$group, $match,$project, $sort, $skip, $limit, $bucket, $bucketAuto, $count
+
+unwind
+
+Add all the marks for each student
+[{$project: {
+  "Sum Of Marks":{
+    $reduce:
+    {
+      input:"$marks",
+      initialValue:0,
+      in:{$add:["$$value","$$this"]}
+    }
+
+      },
+  "StudId":1,
+  "StudName":1
+}}]
+
+
+// Another way
+[{$unwind: {
+  path: "$marks"
+}}, {$group: {
+  _id: "$studId",
+  "Sum Of Marks": {
+    $sum: "$marks"
+  }
+}}]
+
+
+Add all the 1st and 2nd marks only in the marks array for each student
+[{$unwind: {
+  path: "$marks",
+  includeArrayIndex:"subscript"
+}}, {$match: {
+  subscript:{$in:[0,1]}
+}}, {$group: {
+  _id: "$studId",
+  "Sum Of Marks": {
+    $sum: "$marks"
+  }
+}}, {$project: {
+  _id:0,
+  studId:"$_id",
+  "Sum Of Marks":1
+}}]
+
+select sum(salary) from emp
+
+select tolower(empName) from emp;
+
+
+
+
