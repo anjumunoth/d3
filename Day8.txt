@@ -1,0 +1,118 @@
+Index on object
+db.restaurant.createIndex({address:1})
+
+Index on embedded field :
+db.restaurant.createIndex({"address.zipcode":1})
+
+Multi key index: Index on an array field
+db.zipcode.createIndex({"loc":1})
+
+Composite index :
+Can one of the fields be an array or object or embedded object field : yes
+
+Properties:
+1. Unique
+Not allow duplicates
+Allow only null
+
+Can a composite unique index be created - combination of fields should be unique
+Can a unique index be created on field which already has a simple index on the same field-- data is unique;sort order should be different
+
+db.restaurant.createIndex({restaurant_id:1},{unique:true})
+
+2. Sparse
+Consider only those documents which have that field for the index creation
+db.emp.createIndex({salary:1},{sparse:true})
+
+db.emp.find({salary:{$gt:10000}});//sparse index
+db.emp.find({salary:{$exists:false}});//not use sparse index
+
+Example of sparse and unique index
+
+db.sample.createIndex({empId:1},{sparse:true,unique:true})
+db.sample.insertOne({empId:101,empName:"sara"})
+db.sample.insertOne({empId:102,empName:"tara"})
+db.sample.insertOne({empId:101,empName:"lara"});//fail
+db.sample.insertOne({empName:"sita"})
+db.sample.insertOne({empName:"gita"})
+db.sample.insertOne({empName:"asha"})
+
+
+db.sample1.createIndex({doj:1})
+db.sample1.find({{$year:doj}:{$eq:{$year:{new Date()}}}});//not use the index
+
+3. Partial index:
+Only those doc are taken up for creating the index which satisfy the condition
+db.zipcode.createIndex({pop:1},{partialFilterExpression:{pop:{$gt:10000}}})
+
+4. TTL Index
+Total time to live
+
+Rule: TTL index can be created only on a date field or an array having the date field
+expiryAfterSeconds :60 seconds
+field: doj
+After 60 seconds from doj , the document will be deleted
+
+Use case :
+Removing the stale data, logs, session data
+
+
+
+
+Hashed index
+
+db.products.createIndex({description:"text"})
+
+db.products.insertOne({productId:1,productName:"Apple Iphone 13 pro max "description:"Apple 13 pro max is the latest mobile from apple. Flagship model of Apple"})
+db.products.insertOne({productId:2,productName:"Samsung fold3 "description:"Samsung fold3 is the latest mobile from samsung. Flagship model of samsung It has max usage"})
+
+Index entries:Apple,13, pro, max,latest,mobile, Iphone
+
+search : flagship
+Size of text index: huge
+Collection: Only one text index per collection
+Text index : simple,compound
+
+db.products.createIndex({description:"text",productName:"text"})
+
+search Iphone: productId:1 
+
+Make it more useful : weights
+db.products.createIndex({description:"text",productName:"text"},{weights:{description:10,productName:20}})
+
+search : max
+Both the products will be in the result set
+Product 1: productName :1,description:1 == Total score (1*20)+(1*10)=30
+Product 2: productName :0,description:1 = Total score =10
+
+db.restaurant.createIndex({borough:"text",name:"text"})
+db.restaurant.find({$text:{$search:"Bakery"}})
+all the res which have "Bakery" in the name or borough will be dispalyed
+
+
+db.restaurant.createIndex({"$$*":"text})
+db.restaurant.find({$text:{$search:"Bakery"}})
+all the res which have "Bakery" in the name or borough or cuisine or rest_id will be dispalyed
+
+
+Replica Set:
+3 node replica set
+1001  --dbpath --replSet d3Rs1 ,
+1002
+1003
+3 mongod servers
+mongod --port 1001 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\replication\data1" --replSet d3Rs1
+
+mongod --port 1002 --replSet d3Rs1 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\replication\data2"
+
+mongod --port 1003 --replSet d3Rs1 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\replication\data3"
+Open the 4th command prompt from the bin folder and connect to the mongoshell
+mongo --port 1001
+
+rs.initiate({
+_id:"d3Rs1",
+members:[
+{_id:0,host:"localhost:1001"},
+{_id:1,host:"localhost:1002"},
+{_id:2,host:"localhost:1003"}]
+})
