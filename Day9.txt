@@ -1,0 +1,184 @@
+Replica Set:
+3 node replica set
+1001  --dbpath --replSet d3Rs1 ,
+1002
+1003
+3 mongod servers
+mongod --port 1001 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\replication\data1" --replSet d3Rs1
+
+mongod --port 1002 --replSet d3Rs1 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\replication\data2"
+
+mongod --port 1003 --replSet d3Rs1 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\replication\data3"
+Open the 4th command prompt from the bin folder and connect to the mongoshell
+mongo --port 1001
+
+rs.initiate({
+_id:"d3Rs1",
+members:[
+{_id:0,host:"localhost:1001"},
+{_id:1,host:"localhost:1002"},
+{_id:2,host:"localhost:1003"}]
+})
+
+rs.status()
+rs.conf()
+
+
+Add an arbiter:
+
+mongod --port 1004 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\replication\data4" --replSet d3Rs1
+
+Connected to the primary
+rs.addArb("localhost:1004")
+
+Add a zero priority secondary
+
+mongod --port 1005 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\replication\data5" --replSet d3Rs1
+Connect to the primary
+
+rs.add({_id:4,host:"localhost:1005",priority:0})
+
+
+3 scenarios when elections happen:
+1. when primary goes down
+2. when rs.initiate()
+3. whenever the replica set is reconfigured
+4. add a new node with the highest priority 
+
+Change the configuration information
+Connect to the primary
+
+var myConfig=rs.conf()
+myConfig.members[1].priority=10
+rs.reconfig(myConfig)
+
+var myConfig=rs.conf()
+myConfig.members[4].votes=0
+rs.reconfig(myConfig)
+
+Add a new hidden member
+Invisible to the client
+A hidden member can never become the primary
+mongod --port 1006 --replSet d3Rs1 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\replication\data6"
+
+Connect to the primary
+rs.add({_id:5,host:"localhost:1006",hidden:true,priority:0})
+
+Add a new delayed member:
+Sync with the primary after a delay
+Initial sync  will happen when the node is added
+
+mongod --port 1007 --replSet d3Rs1 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\replication\data7"
+
+Connect to the primary
+rs.add({_id:6,host:"localhost:1007",slaveDelay:300,priority:0})
+
+Problems:
+1. Indexes in replica set
+7 members in Rs
+index created -- primary
+secondaries -- sync -- create the index
+async syn with the primary
+
+
+2. File system is full
+
+Member --Oplog -- space
+Data --space 
+cache -- space
+
+read op -- data -- main memory -- client; cache -- hold a lot of data
+Sharding -- breaking up the data 
+
+3. Fault tolerance
+5 member replica set ; 3 members-down ; 2 members- available
+write op -- write majority; writes -- fail
+
+4. primary goes down -- writes - 10 to 20 secs; very often 
+
+5. backup and restore
+point in time recovery -- ops manager
+alerts -- maintanence; disk full, slow queries -- ops manager 
+
+
+
+Sharding:
+
+shard server
+config server
+mongos
+
+
+40tbs -- 5 member replica set
+Each member -- 40tbs
+
+
+sharding -- 4 shards
+Each shard(PSS)
+
+Each shard 15tb
+Each member  of replica set -- 15tb
+
+Licencing cost -- atlas/ data lake, s3
+
+replica set --> migrate to sharded cluster
+
+Configuration of sharded cluster:
+
+2 shards
+Each shard will be a replica set (PSS)
+
+shard1:
+mongod --shardsvr --port 2001 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\sharding\data1" --replSet d3s1 
+
+mongod --shardsvr --port 2002 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\sharding\data2" --replSet d3s1 
+
+mongod --shardsvr --port 2003 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\sharding\data3" --replSet d3s1 
+
+Connect to one of the servers from mongo shell
+mongo --port 2001
+
+rs.initiate({
+_id:"d3s1",
+members:[
+{_id:0,host:"localhost:2001"},
+{_id:1,host:"localhost:2002"},
+{_id:2,host:"localhost:2003"}]
+})
+
+shard2:PSS
+mongod --shardsvr --port 2004 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\sharding\data4" --replSet d3s2 
+
+mongod --shardsvr --port 2005 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\sharding\data5" --replSet d3s2 
+
+mongod --shardsvr --port 2006 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\sharding\data6" --replSet d3s2 
+Connect to one of the servers from mongo shell
+mongo --port 2004
+
+rs.initiate({
+_id:"d3s2",
+members:[
+{_id:0,host:"localhost:2004"},
+{_id:1,host:"localhost:2005"},
+{_id:2,host:"localhost:2006"}]
+})
+
+1 config server -- will also be replica set -(PSS)
+mongod --port 2007 --replSet d3cs1 --configsvr --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\sharding\data7"
+
+mongod --port 2008 --replSet d3cs1 --configsvr --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\sharding\data8"
+
+mongod --port 2009 --replSet d3cs1 --configsvr --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\sharding\data9"
+Connect to one of the servers from mongo shell
+mongo --port 2007
+
+rs.initiate({
+_id:"d3cs1",
+members:[
+{_id:0,host:"localhost:2007"},
+{_id:1,host:"localhost:2008"},
+{_id:2,host:"localhost:2009"}]
+})
+
+1 mongos router
+// Create the connection between mongos and config server and shard server
