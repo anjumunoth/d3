@@ -1,0 +1,120 @@
+sharding -- 4 shards
+Each shard(PSS)
+
+Each shard 15tb
+Each member  of replica set -- 15tb
+
+Licencing cost -- atlas/ data lake, s3
+
+replica set --> migrate to sharded cluster
+
+Configuration of sharded cluster:
+
+2 shards
+Each shard will be a replica set (PSS)
+
+shard1:
+mongod --shardsvr --port 2001 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\sharding\data1" --replSet d3s1 
+
+mongod --shardsvr --port 2002 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\sharding\data2" --replSet d3s1 
+
+mongod --shardsvr --port 2003 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\sharding\data3" --replSet d3s1 
+
+Connect to one of the servers from mongo shell
+mongo --port 2001
+
+rs.initiate({
+_id:"d3s1",
+members:[
+{_id:0,host:"localhost:2001"},
+{_id:1,host:"localhost:2002"},
+{_id:2,host:"localhost:2003"}]
+})
+
+shard2:PSS
+mongod --shardsvr --port 2004 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\sharding\data4" --replSet d3s2 
+
+mongod --shardsvr --port 2005 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\sharding\data5" --replSet d3s2 
+
+mongod --shardsvr --port 2006 --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\sharding\data6" --replSet d3s2 
+Connect to one of the servers from mongo shell
+mongo --port 2004
+
+rs.initiate({
+_id:"d3s2",
+members:[
+{_id:0,host:"localhost:2004"},
+{_id:1,host:"localhost:2005"},
+{_id:2,host:"localhost:2006"}]
+})
+
+1 config server -- will also be replica set -(PSS)
+mongod --port 2007 --replSet d3cs1 --configsvr --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\sharding\data7"
+
+mongod --port 2008 --replSet d3cs1 --configsvr --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\sharding\data8"
+
+mongod --port 2009 --replSet d3cs1 --configsvr --dbpath "C:\Users\anjum\OneDrive\Desktop\Dell_mongodbBatch3\sharding\data9"
+Connect to one of the servers from mongo shell
+mongo --port 2007
+
+rs.initiate({
+_id:"d3cs1",
+members:[
+{_id:0,host:"localhost:2007"},
+{_id:1,host:"localhost:2008"},
+{_id:2,host:"localhost:2009"}]
+})
+
+1 mongos router
+// Create the connection between mongos and config server and shard server
+Start the mongos router
+In a new cmd prompt
+mongos --configdb "d3cs1/localhost:2007" --port 9001
+
+In another command prompt, connect to mongos
+mongo --port 9001
+Must get the follwing as part of the prompt
+
+mongos>
+
+sh.addShard("d3s1/localhost:2001");
+sh.addShard("d3s2/localhost:2004");
+
+sh.status()
+Import the data
+sh.enableSharding("shardExampleDb")
+
+sh.shardCollection("shardExampleDb.zipcode",{state:1})
+
+Manually split a chunk
+
+splitAt
+sh.splitAt("shardExampleDb.zipcode",{state:"MA"})
+
+splitFind -- Divide the chunk into 2 equally sized chunks
+Split the chunk which has state:"CT" into 2 equal chunks
+sh.splitFind("shardExampleDb.zipcode",{state:"CT"})
+
+
+
+
+
+
+Start the mongos router
+In a new cmd prompt
+mongos --configdb "d3cs1/localhost:2007" --port 9001
+
+In another command prompt, connect to mongos
+mongo --port 9001
+Must get the follwing as part of the prompt
+
+mongos>
+
+
+mongodb://mongos0.example.com:27017,mongos1.example.com:27017,mongos2.example.com:27017
+
+back up at the collection level
+1. Connect to mongos and take the back up
+2.Connect to each shard's hidden member -- take a back up here
+
+
